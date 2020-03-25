@@ -60,19 +60,54 @@
                     Invoke-WebRequest -Uri https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip -OutFile .\ookla.zip;
                     Expand-Archive -Path .\ookla.zip -DestinationPath .\;
                     Remove-Item -Path .\ookla.zip -Force;
+                    if(!(Test-Path -Path .\speedtest.exe))
+                    {
+                        Write-Warning "Missing $PSScriptRoot\Speedtest.exe file! Verify Speedtest.exe exists and/or download it from Ookla."
+                        return;
+                    };
                 }
                 $IsMacOS
                 {
-
+                    Write-Error "Operating System not supported yet."
                 }
                 $IsLinux
                 {
-                    if((uname -a).ToString().ToUpper().Contains("DEBIAN") -or (uname -a).ToString().ToUpper().Contains("UBUNTU"))
+                    $IsRoot = whoami
+                    if(!($IsRoot -eq "root"))
                     {
-                        Invoke-WebRequest -Uri https://ookla.bintray.com/debian/ookla-speedtest-1.0.0-x86_64-linux.deb -OutFile .\ookla.deb
-                        apt install -y ./ookla.deb
-                    };
+                        Write-Error "Must be running as root (ie sudo, su, etc)";
+                        return;
+                    }
+                    else
+                    {
+                        $OSVersion = Get-Content -Path /etc/0s-release
+                        $Fedora = $false;
+                        foreach($string in $OS)
+                        {
+                            if($string.ToString().ToUpper().Contains("ID=FEDORA"){
+                                $Fedora = $true;
+                                break;
+                            }
+                        }
 
+                        if($Fedora)
+                        {
+                            if(!(Get-Command "speedtest" -ErrorAction SilentlyContinue))
+                            {
+                                Invoke-WebRequest -Uri https://bintray.com/ookla/rhel/rpm -OutFile ./bintray-ookla-rhel.repo;
+                                Move-Item -Path ./bintray-ookla-rhel.repo /etc/yum.repos.d/ -Destination /etc/yum.repos.d/;
+                                yum install -y speedtest;
+                            };
+                        }
+                        else
+                        {
+                            Write-Error "Operating System not supported yet."
+                        };
+                    };
+                }
+                default
+                {
+                    Write-Error Write-Error "Operating System not supported yet."
                 }
             };
 
@@ -82,11 +117,7 @@
             Write-Warning $_;
             return;
         };
-        if(!(Test-Path -Path .\speedtest.exe))
-        {
-            Write-Warning "Missing $PSScriptRoot\Speedtest.exe file! Verify Speedtest.exe exists and/or download it from Ookla."
-            return;
-        };
+
     };
 
     $NextTime = (Get-Date).TimeOfDay;
@@ -109,7 +140,7 @@
     $RunTimeFullDate = $RunTimeMonth.ToString()+"."+$RunTimeDay.ToString()+"."+$RunTimeYear.ToString()+"_"+$RunTimeHH.ToString()+$RunTimeMM.ToString();
 
     #Log File Name
-    $LogFileName = $RuntimeFullDate.ToString()+".csv"
+    $LogFileName = "Ookla_$($RuntimeFullDate.ToString()).csv"
     $LogMessage = "Log File "+$RuntimeFullDate.ToString()+".csv generated here: " + $PSScriptRoot.ToString();
 
     #CSV Log File Headers 
