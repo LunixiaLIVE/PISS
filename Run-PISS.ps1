@@ -205,7 +205,7 @@
                 {
                     $JobDone = $false;
                 };
-                Write-Progress -Activity "Speed Test" -Status "In Progress" -SecondsRemaining ($Timeout - $i) -PercentComplete $i;
+                Write-Progress -Activity "Speed Test" -Status "In Progress" -SecondsRemaining ($($Timeout - $i).ToString()+" until timeout") -PercentComplete $i;
                 Start-Sleep -Seconds 1;
             };
             if($JobDone -eq $false)
