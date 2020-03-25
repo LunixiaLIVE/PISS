@@ -39,7 +39,7 @@
         [Parameter(Position = 0,Mandatory = $false,ValueFromPipeline = $true)][Int]$Interval = 15,
         [Parameter(Position = 1,Mandatory = $false,ValueFromPipeline = $true)][Int]$Timeout = 100
     )
-    Set-Location $PSScriptRoot
+    Set-Location $PSScriptRoot;
     [String]$ScriptOS = "";
     if(!($PSVersionTable.PSEdition -eq "Core"))
     {
