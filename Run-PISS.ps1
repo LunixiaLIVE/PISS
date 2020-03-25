@@ -72,7 +72,7 @@
                         $ENV:INSTALL_KEY = "379CE192D401AB61";
                         $ENV:DEB_DISTRO=$(lsb_release -sc);
                         apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $INSTALL_KEY;
-                        tee /etc/apt/sources.list.d/speedtest.list -a "deb https://ookla.bintray.com/debian $DEB_DISTRO main"
+                        tee /etc/apt/sources.list.d/speedtest.list -a "deb https://ookla.bintray.com/debian $ENV:DEB_DISTRO main"
                         apt-get update;
                         sudo apt-get install -y speedtest
                     }
