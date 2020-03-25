@@ -186,7 +186,7 @@
                 }
                 $IsLinux
                 {
-                    $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = speedtest; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
+                    $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = speedtest YES; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
                 }
             };
 
