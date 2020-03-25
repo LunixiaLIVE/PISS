@@ -11,13 +11,14 @@
 
         .DESCRIPTION
             Powershell Interval SpeedTest Script (PISS).
-            The Interval variable is optional, and the default value is 5
+            The Interval variable is optional, and the default value is 15 minutes
 
         .PARAMETER Interval
             How often (in minutes) you want the speed test to run
 
         .PARAMETER Timeout
             How much time (in seconds) you want to wait before terminating the speed test
+            The default value is 100 seconds
 
         .OUTPUTS
             mm.dd.yyy_hhmm.csv log file is writting to the same directory as this script at runtime.
@@ -35,7 +36,7 @@
             Run-SpeedTest -Interval 15
     #>
     param(
-        [Parameter(Position = 0,Mandatory = $false,ValueFromPipeline = $true)][Int]$Interval = 5,
+        [Parameter(Position = 0,Mandatory = $false,ValueFromPipeline = $true)][Int]$Interval = 15,
         [Parameter(Position = 1,Mandatory = $false,ValueFromPipeline = $true)][Int]$Timeout = 100
     )
     Set-Location $PSScriptRoot;
@@ -68,14 +69,9 @@
                 {
                     if((uname -a).ToString().ToUpper().Contains("DEBIAN") -or (uname -a).ToString().ToUpper().Contains("UBUNTU"))
                     {
-                        apt-get install gnupg1 apt-transport-https dirmngr;
-                        $INSTALL_KEY = "379CE192D401AB61";
-                        $DEB_DISTRO=$(lsb_release -sc);
-                        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $INSTALL_KEY;
-                        echo "deb https://ookla.bintray.com/debian/dists/generic/main" | tee /etc/apt/sources.list.d/speedtest.list;
-                        apt-get update;
-                        sudo apt-get install -y speedtest
-                    }
+                        Invoke-WebRequest -Uri https://ookla.bintray.com/debian/ookla-speedtest-1.0.0-x86_64-linux.deb -OutFile .\ookla.deb
+                        apt install -y ./ookla.deb
+                    };
 
                 }
             };
