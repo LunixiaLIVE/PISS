@@ -95,7 +95,7 @@
                             if(!(Get-Command "speedtest" -ErrorAction SilentlyContinue))
                             {
                                 Invoke-WebRequest -Uri https://bintray.com/ookla/rhel/rpm -OutFile ./bintray-ookla-rhel.repo;
-                                Move-Item -Path ./bintray-ookla-rhel.repo /etc/yum.repos.d/ -Destination /etc/yum.repos.d/;
+                                Move-Item -Path ./bintray-ookla-rhel.repo -Destination /etc/yum.repos.d/;
                                 yum install -y speedtest;
                             };
                         }
