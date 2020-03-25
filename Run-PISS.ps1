@@ -84,7 +84,7 @@
                         $Fedora = $false;
                         foreach($string in $OS)
                         {
-                            if($string.ToString().ToUpper().Contains("ID=FEDORA"){
+                            if($string.ToString().ToUpper().Contains("ID=FEDORA")){
                                 $Fedora = $true;
                                 break;
                             }
@@ -190,8 +190,6 @@
                 }
             };
 
-            
-            
             $JobDone = $false;
             for($i = 1; $i -lt $Timeout; $i++)
             {
