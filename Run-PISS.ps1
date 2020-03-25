@@ -178,7 +178,7 @@
             {
                 $IsWindows
                 {
-                    $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = .\speedtest.exe; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
+                    $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = .\speedtest.exe --accept-license; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
                 }
                 $IsMacOS
                 {
