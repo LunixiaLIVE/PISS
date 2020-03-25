@@ -29,6 +29,7 @@
             Creation Date:  24 March 2020
             Purpose:        Perform speed test in intervals w/logging
             Ookla:          https://www.speedtest.net/apps/cli
+            Pwsh Core:      https://github.com/PowerShell/PowerShell/releases
 
         .EXAMPLE
             Run-SpeedTest -Interval 15
@@ -38,15 +39,47 @@
         [Parameter(Position = 1,Mandatory = $false,ValueFromPipeline = $true)][Int]$Timeout = 100
     )
     Set-Location $PSScriptRoot;
-    
+    [String]$ScriptOS = "";
+    if(!($PSVersionTable.PSEdition -eq "Core"))
+    {
+        Write-Warning "Must be run with Powershell Core."
+        Write-Warning "Visit https://github.com/PowerShell/PowerShell/releases and install powershell for your Operating System."
+        return;
+    }
+
     #Checking for required speedtest.exe file
     if(!(Test-Path -Path .\speedtest.exe))
     {
         try
         {
-            Invoke-WebRequest -Uri https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip -OutFile .\ookla.zip;
-            Expand-Archive -Path .\ookla.zip -DestinationPath .\;
-            Remove-Item -Path .\ookla.zip -Force;
+            switch($true)
+            {
+                $IsWindows
+                {
+                    Invoke-WebRequest -Uri https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip -OutFile .\ookla.zip;
+                    Expand-Archive -Path .\ookla.zip -DestinationPath .\;
+                    Remove-Item -Path .\ookla.zip -Force;
+                }
+                $IsMacOS
+                {
+
+                }
+                $IsLinux
+                {
+                    if((uname -a).ToString().ToUpper().Contains("DEBIAN") -or (uname -a).ToString().ToUpper().Contains("UBUNTU"))
+                    {
+                        apt-get install gnupg1 apt-transport-https dirmngr;
+                        $ENV:INSTALL_KEY = "379CE192D401AB61";
+                        $ENV:DEB_DISTRO=$(lsb_release -sc);
+                        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $INSTALL_KEY;
+                        echo "deb https://ookla.bintray.com/debian $DEB_DISTRO main" | tee /etc/apt/sources.list.d/speedtest.list;
+                        apt-get update;
+                        sudo apt-get install -y speedtest
+                    }
+
+                }
+            };
+
         }
         catch
         {
@@ -113,7 +146,25 @@
                 Speedtest.exe runs with default operators (ie server based on ping, output, etc).
                 Adding additional parameters after speedtest.exe may change the result format that is written to the log file.
             #>
-            $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = .\speedtest.exe; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
+            
+            switch($true)
+            {
+                $IsWindows
+                {
+                    $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = .\speedtest.exe; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
+                }
+                $IsMacOS
+                {
+
+                }
+                $IsLinux
+                {
+                    $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = speedtest; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
+                }
+            };
+
+            
+            
             $JobDone = $false;
             for($i = 1; $i -lt $Timeout; $i++)
             {
