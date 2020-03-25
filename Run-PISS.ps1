@@ -186,8 +186,7 @@
                 }
                 $IsLinux
                 {
-                    echo "YES" | speedtest && killall speedtest
-                    $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = speedtest; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
+                    $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = speedtest --accept-license; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
                 }
             };
 
