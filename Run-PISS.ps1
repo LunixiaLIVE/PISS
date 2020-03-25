@@ -80,9 +80,9 @@
                     }
                     else
                     {
-                        $OSVersion = Get-Content -Path /etc/0s-release
+                        $OSVersion = Get-Content -Path /etc/os-release
                         $Fedora = $false;
-                        foreach($string in $OS)
+                        foreach($string in $OSVersion)
                         {
                             if($string.ToString().ToUpper().Contains("ID=FEDORA")){
                                 $Fedora = $true;
