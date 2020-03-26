@@ -1,0 +1,14 @@
+# PISS
+Powershell Interval Speedtest Script (PISS)
+
+Download Cross-Platform Powershell for your Operating System
+https://github.com/PowerShell/PowerShell/releases
+https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7
+
+Automated your speeds tests from Windows or Redhat/Fedora Linux
+View Run-PISS.ps1 documentation (inside the script) for more details.
+
+Once powershell core is launched (pwsh), navigate to the location of this script.
+Import the function by using the following
+. ./Run-PISS.ps1
+Then you can run the function as if it were a Cmdlet.
