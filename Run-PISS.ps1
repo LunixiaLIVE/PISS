@@ -84,7 +84,7 @@
                         $Fedora = $false;
                         foreach($string in $OSVersion)
                         {
-                            if($string.ToString().ToUpper().Contains("ID=FEDORA")){
+                            if($string.ToString().ToUpper().Contains("ID=FEDORA") -or $string.ToString().ToUpper().Contains("ID=RHEL")){
                                 $Fedora = $true;
                                 break;
                             }
