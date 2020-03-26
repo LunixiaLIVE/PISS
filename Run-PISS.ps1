@@ -107,7 +107,7 @@
                 }
                 default
                 {
-                    Write-Error Write-Error "Operating System not supported yet."
+                    Write-Error "Operating System not supported yet."
                 }
             };
 
