@@ -57,6 +57,7 @@
             {
                 $IsWindows
                 {
+                    #Downloads Speedtest CLI, unpackages it, and then verifies the files are in the same directory.
                     Invoke-WebRequest -Uri https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip -OutFile .\ookla.zip;
                     Expand-Archive -Path .\ookla.zip -DestinationPath .\;
                     Remove-Item -Path .\ookla.zip -Force;
@@ -94,6 +95,8 @@
                         {
                             if(!(Get-Command "speedtest" -ErrorAction SilentlyContinue))
                             {
+                                #Installs Speedtest and installs is, then verifies it is installed. (Requires root).
+                                #Verify all URLs/package names to ensure no malicious packages are being installed.
                                 Invoke-WebRequest -Uri https://bintray.com/ookla/rhel/rpm -OutFile ./bintray-ookla-rhel.repo;
                                 Move-Item -Path ./bintray-ookla-rhel.repo -Destination /etc/yum.repos.d/;
                                 yum install -y speedtest;
