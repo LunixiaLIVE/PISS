@@ -111,6 +111,8 @@
 
     $NextTime = (Get-Date).TimeOfDay;
     $Host.UI.RawUI.WindowTitle = "Running Ookla Speed Test every $Interval Minutes...";
+
+    #Date Formatting
     $RunTimeHH = $NextTime.Hours; 
     if($RunTimeHH.ToString().Length -eq 1){ 
         $RunTimeHH = "0$RunTimeHH";
@@ -119,11 +121,9 @@
     if($RunTimeMM.ToString().Length -eq 1){ 
         $RunTimeMM = "0$RunTimeMM";
     };
-
-    #Date Formatting
     $RunTimeFullDate = "$((Get-Date).Day.ToString()).$((Get-Date).Month.ToString()).$((Get-Date).Year.ToString())_$($RunTimeHH.ToString())$($RunTimeMM.ToString())";
 
-    #Log File Name
+    #Log File Name & Location
     $LogFileName = "Ookla_$($RuntimeFullDate.ToString()).csv"
     if(!($LogDir -eq $PSScriptRoot)){
         if(Test-Path -Path $LogDir -ErrorAction SilentlyContinue){
