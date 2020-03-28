@@ -12,5 +12,5 @@ If you are on a linux system, powershell will need to run as sudo in order to in
 Windows does not need elevated permissions to run. 
 Once powershell core is launched (pwsh), navigate to the location of this script.
 Import the function by using the following
-. ./Run-PISS.ps1
+pwsh PathTo\Run-Piss.ps1
 Then you can run the function as if it were a Cmdlet.
