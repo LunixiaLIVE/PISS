@@ -44,7 +44,7 @@
     Set-Location $PSScriptRoot;
 
     [String]$ScriptOS = "";
-    if(!($PSVersionTable.PSEdition -eq "Core"))
+    if(!($PSVersionTable.PSEdition.ToString().ToUpper() -eq "CORE"))
     {
         Write-Error "Must be run with Powershell Core."
         Write-Warning "Visit https://github.com/PowerShell/PowerShell/releases and install powershell for your Operating System."
@@ -353,3 +353,21 @@
         Write-Progress -Activity "Waiting for next speed test @$($NextTime.ToString().SubString(0,$NextTime.ToString().IndexOf(".")-3))" -Status "zzZZzzz";
     }; 
 };
+
+if(!($PSVersionTable.PSEdition.ToString().ToUpper() -eq "CORE"))
+{
+    Write-Error "Must be run with Powershell Core."
+    Write-Warning "Visit https://github.com/PowerShell/PowerShell/releases and install powershell for your Operating System."
+    return;
+}
+
+if(!(Get-Command Run-PISS -ErrorAction SilentlyContinue))
+{
+    . .\Run-PISS.ps1
+    Write-Host "Function has been imported"
+    Write-Host "Run-PISS"
+    Write-Host "    Optional Parameters:"
+    Write-Host "    [Int][-Interval]"
+    Write-Host "    [Int][-Timeout]"
+    Write-Host "    [String][-LogDir]"
+}
