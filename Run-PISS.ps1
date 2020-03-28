@@ -361,7 +361,7 @@ if(!($PSVersionTable.PSEdition.ToString().ToUpper() -eq "CORE"))
     return;
 }
 
-if(!(Get-Command Run-PISS -ErrorAction SilentlyContinue))
+if(!(Get-Command -Name Run-PISS -ErrorAction SilentlyContinue))
 {
     . .\Run-PISS.ps1
     Write-Host "Function has been imported"
