@@ -36,26 +36,29 @@
             Run-SpeedTest -Interval 15
     #>
     param(
-        [Parameter(Position = 0,Mandatory = $false,ValueFromPipeline = $true)][Int]$Interval = 15,
-        [Parameter(Position = 1,Mandatory = $false,ValueFromPipeline = $true)][Int]$Timeout = 100
+        [Parameter(Mandatory = $false,ValueFromPipeline = $true)][Int]$Interval = 15,
+        [Parameter(Mandatory = $false,ValueFromPipeline = $true)][Int]$Timeout = 100,
+        [Parameter(Mandatory = $false,ValueFromPipeline = $true)][String]$LogDir = $PSScriptRoot
     )
+
     Set-Location $PSScriptRoot;
+
     [String]$ScriptOS = "";
     if(!($PSVersionTable.PSEdition -eq "Core"))
     {
-        Write-Warning "Must be run with Powershell Core."
+        Write-Error "Must be run with Powershell Core."
         Write-Warning "Visit https://github.com/PowerShell/PowerShell/releases and install powershell for your Operating System."
         return;
     }
 
-    #Checking for required speedtest.exe file
-    if(!(Test-Path -Path .\speedtest.exe))
+    #Checking for required speedtest program
+    try
     {
-        try
+        switch($true)
         {
-            switch($true)
+            $IsWindows
             {
-                $IsWindows
+                if(!(Test-Path -Path .\speedtest.exe))
                 {
                     #Downloads Speedtest CLI, unpackages it, and then verifies the files are in the same directory.
                     Invoke-WebRequest -Uri https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip -OutFile .\ookla.zip;
@@ -66,61 +69,63 @@
                         Write-Warning "Missing $PSScriptRoot\Speedtest.exe file! Verify Speedtest.exe exists and/or download it from Ookla."
                         return;
                     };
-                }
-                $IsMacOS
+                };
+            }
+            $IsMacOS
+            {
+                Write-Error "Operating System not supported yet."
+            }
+            $IsLinux
+            {
+                $IsRoot = whoami
+                if(!($IsRoot -eq "root"))
                 {
-                    Write-Error "Operating System not supported yet."
+                    Write-Error "Must be running as root (ie sudo, su, etc)";
+                    return;
                 }
-                $IsLinux
+                else
                 {
-                    $IsRoot = whoami
-                    if(!($IsRoot -eq "root"))
+                    $OSVersion = Get-Content -Path /etc/os-release
+                    $Fedora = $false;
+                    foreach($string in $OSVersion)
                     {
-                        Write-Error "Must be running as root (ie sudo, su, etc)";
-                        return;
+                        #Checks for all flavors of RPM linux.
+                        if($string.ToString().ToUpper().Contains("FEDORA") -or `
+                           $string.ToString().ToUpper().Contains("RHEL") -or `
+                           $string.ToString().ToUpper().Contains("CENTOS")){
+                            $Fedora = $true;
+                            break;
+                        }
+                    }
+
+                    if($Fedora)
+                    {
+                        if(!(Get-Command "speedtest" -ErrorAction SilentlyContinue))
+                        {
+                            #Installs Speedtest and installs is, then verifies it is installed. (Requires root).
+                            #Verify all URLs/package names to ensure no malicious packages are being installed.
+                            Invoke-WebRequest -Uri https://bintray.com/ookla/rhel/rpm -OutFile ./bintray-ookla-rhel.repo;
+                            Move-Item -Path ./bintray-ookla-rhel.repo -Destination /etc/yum.repos.d/;
+                            yum install -y speedtest;
+                        };
                     }
                     else
                     {
-                        $OSVersion = Get-Content -Path /etc/os-release
-                        $Fedora = $false;
-                        foreach($string in $OSVersion)
-                        {
-                            if($string.ToString().ToUpper().Contains("ID=FEDORA") -or $string.ToString().ToUpper().Contains("ID=RHEL")){
-                                $Fedora = $true;
-                                break;
-                            }
-                        }
-
-                        if($Fedora)
-                        {
-                            if(!(Get-Command "speedtest" -ErrorAction SilentlyContinue))
-                            {
-                                #Installs Speedtest and installs is, then verifies it is installed. (Requires root).
-                                #Verify all URLs/package names to ensure no malicious packages are being installed.
-                                Invoke-WebRequest -Uri https://bintray.com/ookla/rhel/rpm -OutFile ./bintray-ookla-rhel.repo;
-                                Move-Item -Path ./bintray-ookla-rhel.repo -Destination /etc/yum.repos.d/;
-                                yum install -y speedtest;
-                            };
-                        }
-                        else
-                        {
-                            Write-Error "Operating System not supported yet."
-                        };
+                        Write-Error "Operating System not supported yet."
                     };
-                }
-                default
-                {
-                    Write-Error "Operating System not supported yet."
-                }
-            };
-
-        }
-        catch
-        {
-            Write-Warning $_;
-            return;
+                };
+            }
+            default
+            {
+                Write-Error "Operating System not supported yet."
+            }
         };
 
+    }
+    catch
+    {
+        Write-Warning $_;
+        return;
     };
 
     $NextTime = (Get-Date).TimeOfDay;
@@ -144,13 +149,45 @@
 
     #Log File Name
     $LogFileName = "Ookla_$($RuntimeFullDate.ToString()).csv"
-    $LogMessage = "Log File "+$RuntimeFullDate.ToString()+".csv generated here: " + $PSScriptRoot.ToString();
+    if($LogDir -eq $PSScriptRoot)
+    {
+        #Continue
+    }
+    else
+    {
+        if(Test-Path -Path $LogDir -ErrorAction SilentlyContinue)
+        {
+            $LogMessage = "Log File "+$RuntimeFullDate.ToString()+".csv generated here: " + $LogDir.ToString();
+        }
+        else
+        {
+            try
+            {
+                New-Item -Path $LogDir -ItemType Directory -Force | Out-Null;
+                Write-Host "$LogDir directory created"
+            }
+            catch
+            {
+                Write-Warning "Failed to create directory $LogDir"
+                Write-Error $_;
+            }
+            if(!(Test-Path -Path $LogDir))
+            {
+                Write-Error $_
+                Write-Warning "Defaulting log locaiton to: $PSScriptRoot"
+                $LogDir = $PSScriptRoot;
+                $LogMessage = "Log File "+$RuntimeFullDate.ToString()+".csv generated here: " + $LogDir.ToString();
+            };
+        };
+    };
+    Write-Host $LogMessage;
 
     #CSV Log File Headers 
-    Add-Content -Path $PSScriptRoot\$LogFileName -Value "Date, Time, Server, State, NodeID, ISP, Latency, LatencyUnit, Jitter, JitterUnit, DownLoadSpeed, DownLoadSpeedUnit, DownLoadSize, DownloadSizeUnit, UpLoadSpeed, UpLoadSpeedUnit, UpLoadSize, UpLoadSizeUnit, PacketLoss, ResultURL";
+    Add-Content -Path $LogDir\$LogFileName -Value "Date, Time, Server, State, NodeID, ISP, Latency, LatencyUnit, Jitter, JitterUnit, DownSpeed, DownSpeedUnit, DownSize, DownSizeUnit, UpSpeed, UpSpeedUnit, UpSize, UpSizeUnit, PacketLoss, ResultURL";
 
     while($true)
     {
+        #Resetting all variables
         $LogTimeDate = $LogTime = $Server = $State = $NodeID = $ISP = $Latency = $LatencyUnit = $Jitter = $JitterUnit = $DownSpeed = $DownSpeedUnit = $DownSize = $DownSizeUnit = $UpSpeed = $UpSpeedUnit = $UpSize = $UpSpeedUnit = $PacketLoss = $URL = "";
         $TimeStamped = (Get-Date).TimeOfDay
         $LogHH = $TimeStamped.Hours; 
@@ -249,6 +286,11 @@
                         $Temp = $Jitter.Substring(0, $Jitter.IndexOf(" ")).Trim();
                         $JitterUnit = $Jitter.Replace($Temp,"").Trim();
                         $Jitter = $Temp;
+                        if($Latency -eq ""){ $Jitter -eq "ERROR"; };
+                        if($LatencyUnit -eq ""){ $JitterUnit -eq "ERROR"; };
+                        if($Jitter -eq ""){ $Jitter -eq "ERROR"; };
+                        if($JitterUnit -eq ""){ $JitterUnit -eq "ERROR"; };
+
                     };
                     if($line.ToString().Contains("Download:"))
                     {
@@ -263,6 +305,10 @@
                         $Temp = $DownSize.Substring(0, $DownSize.IndexOf(" ")).Trim();
                         $DownSizeUnit = $DownSize.Replace($Temp,"").Trim();
                         $DownSize = $Temp;
+                        if($DownSpeed -eq ""){ $Jitter -eq "ERROR"; };
+                        if($DownSpeedUnit -eq ""){ $JitterUnit -eq "ERROR"; };
+                        if($DownSize -eq ""){ $Jitter -eq "ERROR"; };
+                        if($DownSizeUnit -eq ""){ $JitterUnit -eq "ERROR"; };
                     };
                     if($line.ToString().Contains("Upload:")){
                         $String = $line.ToString();
@@ -276,23 +322,29 @@
                         $Temp = $UpSize.Substring(0, $UpSize.IndexOf(" ")).Trim();
                         $UpSizeUnit = $UpSize.Replace($Temp,"").Trim();
                         $UpSize = $Temp;
+                        if($UpSpeed -eq ""){ $Jitter -eq "ERROR"; };
+                        if($UpSpeedUnit -eq ""){ $JitterUnit -eq "ERROR"; };
+                        if($UpSize -eq ""){ $Jitter -eq "ERROR"; };
+                        if($UpSizeUnit -eq ""){ $JitterUnit -eq "ERROR"; };
                     };
                     if($line.ToString().Contains("Packet Loss:")){
                         $String = $line.ToString();
                         $PacketLoss = $String.Replace("Packet Loss:","").Trim();
+                        if($PacketLoss -eq ""){ $PacketLoss -eq "ERROR"; };
                     };
                     if($line.ToString().Contains("URL:")){
                         $String = $line.ToString();
                         $URL = $String.Replace("Result URL:","").Trim();
+                        if($URL -eq ""){ $URL -eq "ERROR"; };
                     };
                 };
 
                 #Logs Results and posts last set of results to the console.
                 Write-Progress -Activity "Speed Test Completed" -Status $LogMessage -Completed;
                 Clear-Host;
-                Add-Content -Path $PSScriptRoot\$LogFileName -Value "$LogTimeDate, $LogTime, $Server, $State, $NodeID, $ISP, $Latency, $LatencyUnit, $Jitter, $JitterUnit, $DownSpeed, $DownSpeedUnit, $DownSize, $DownSizeUnit, $UpSpeed, $UpSpeedUnit, $UpSize, $UpSpeedUnit, $PacketLoss, $URL"
+                Add-Content -Path $LogDir\$LogFileName -Value "$LogTimeDate, $LogTime, $Server, $State, $NodeID, $ISP, $Latency, $LatencyUnit, $Jitter, $JitterUnit, $DownSpeed, $DownSpeedUnit, $DownSize, $DownSizeUnit, $UpSpeed, $UpSpeedUnit, $UpSize, $UpSpeedUnit, $PacketLoss, $URL"
                 Write-Host "`r`n`r`n`r`n`r`n";
-                $t = Import-Csv -Path $PSScriptRoot\$LogFileName;
+                $t = Import-Csv -Path $LogDir\$LogFileName;
                 $t[$t.Count -1]
                 Remove-Item -Path $PSScriptRoot\temp.txt;
             };
