@@ -8,7 +8,7 @@
             it automatically, unzip it from the archive file and then run it.
             IF the script fails to download the speedtest.exe file, download it manually
             and place it in the same directory as this script
-
+ 
         .DESCRIPTION
             Powershell Interval SpeedTest Script (PISS).
             The Interval variable is optional, and the default value is 15 minutes
