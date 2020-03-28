@@ -26,14 +26,17 @@
 
         .NOTES
             Author:         LunixiaLIVE
-            Version:        1.0
+            Version:        1.0.2
             Creation Date:  24 March 2020
             Purpose:        Perform speed test in intervals w/logging
             Ookla:          https://www.speedtest.net/apps/cli
             Pwsh Core:      https://github.com/PowerShell/PowerShell/releases
 
         .EXAMPLE
-            Run-SpeedTest -Interval 15
+            Run-PISS -Interval 15
+            Run-PISS -Timeout 120
+            Run-PISS -LogDir /tmp/speedtest
+            Run-PISS -Interval 15 -Timeout 120 -LogDir /tmp/speedtest
     #>
     param(
         [Parameter(Mandatory = $false,ValueFromPipeline = $true)][Int]$Interval = 15,
@@ -142,18 +145,11 @@
     };
 
     #Date Formatting
-    $RunTimeDay = (Get-Date).Day;
-    $RunTimeMonth = (Get-Date).Month;
-    $RunTimeYear = (Get-Date).Year;
-    $RunTimeFullDate = $RunTimeMonth.ToString()+"."+$RunTimeDay.ToString()+"."+$RunTimeYear.ToString()+"_"+$RunTimeHH.ToString()+$RunTimeMM.ToString();
+    $RunTimeFullDate = "$((Get-Date).Day.ToString()).$((Get-Date).Month.ToString()).$((Get-Date).Year.ToString())_$($RunTimeHH.ToString())$($RunTimeMM.ToString())";
 
     #Log File Name
     $LogFileName = "Ookla_$($RuntimeFullDate.ToString()).csv"
-    if($LogDir -eq $PSScriptRoot)
-    {
-        #Continue
-    }
-    else
+    if(!($LogDir -eq $PSScriptRoot))
     {
         if(Test-Path -Path $LogDir -ErrorAction SilentlyContinue)
         {
@@ -222,7 +218,7 @@
                 }
                 $IsMacOS
                 {
-
+                    #In Development...
                 }
                 $IsLinux
                 {
