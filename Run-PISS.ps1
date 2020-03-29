@@ -305,13 +305,13 @@
                     };
                 };
 
-                #Logs Results and posts last set of results to the console.
+                #Logs Results and posts last set of results to the console.;
                 Write-Progress -Activity "Speed Test Completed" -Status $LogMessage -Completed;
                 Clear-Host;
-                Add-Content -Path $LogDir\$LogFileName -Value "$LogTimeDate, $LogTime, $Server, $State, $NodeID, $ISP, $Latency, $LatencyUnit, $Jitter, $JitterUnit, $DownSpeed, $DownSpeedUnit, $DownSize, $DownSizeUnit, $UpSpeed, $UpSpeedUnit, $UpSize, $UpSpeedUnit, $PacketLoss, $URL"
+                Add-Content -Path $LogDir\$LogFileName -Value "$LogTimeDate, $LogTime, $Server, $State, $NodeID, $ISP, $Latency, $LatencyUnit, $Jitter, $JitterUnit, $DownSpeed, $DownSpeedUnit, $DownSize, $DownSizeUnit, $UpSpeed, $UpSpeedUnit, $UpSize, $UpSpeedUnit, $PacketLoss, $URL";
                 Write-Host "`r`n`r`n`r`n`r`n";
                 $t = Import-Csv -Path $LogDir\$LogFileName;
-                $t[$t.Count -1]
+                $t[$t.Count -1];
                 Remove-Item -Path $PSScriptRoot\temp.txt;
             };
         };
