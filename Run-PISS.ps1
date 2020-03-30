@@ -111,7 +111,7 @@
 
     $NextTime = (Get-Date).TimeOfDay;
     $Host.UI.RawUI.WindowTitle = "Running Ookla Speed Test every $Interval Minutes...";
-
+    [String]$LogMessage = ""
     #Date Formatting
     $RunTimeHH = $NextTime.Hours; 
     if($RunTimeHH.ToString().Length -eq 1){ 
@@ -172,12 +172,15 @@
             switch($true){
                 $IsWindows{
                     $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = .\speedtest.exe --accept-license; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
+                    break;
                 }
                 $IsMacOS{
                     #In Development...
+                    break;
                 }
                 $IsLinux{
                     $Job = Start-Job -ScriptBlock { param($Path) Set-Location -Path $Path; $output = speedtest --accept-license; Add-Content -Path .\temp.txt -Value $output; } -ArgumentList $PSScriptRoot;
+                    break;
                 }
             };
 
@@ -200,32 +203,32 @@
             }else{
                 $Result = Get-Content -Path .\temp.txt;
                 foreach($line in $Result){
-                    if($line.ToString().Contains("Server:")){
-                        $String = $line.ToString();
-                        $String = $String.Replace("Server:","").Trim();
-                        $Server = $String.Substring(0, $String.IndexOf(",")).Trim();
-                        $String = $String.Replace($Server, "").Trim();
-                        $String = $String.Replace(",", "").Trim();
-                        $State = $String.Substring(0, $String.IndexOf("(")).Trim();
-                        $String = $String.Replace($State,"").Trim()
-                        $NodeID = $String.Replace("(","").Replace(")","").Replace("id = ", "").Trim();
+                    if($line.ToString().ToUpper().Contains("SERVER:")){
+                        $String = $line.ToString().ToUpper().Trim();
+                        $String = $String.ToString().ToUpper().Replace("SERVER:","").Trim();
+                        $Server = $String.ToString().ToUpper().Substring(0, $String.IndexOf(",")).Trim();
+                        $String = $String.ToString().ToUpper().Replace($Server, "").Trim();
+                        $String = $String.ToString().ToUpper().Replace(",", "").Trim();
+                        $State  = $String.ToString().ToUpper().Substring(0, $String.IndexOf("(")).Trim();
+                        $String = $String.ToString().ToUpper().Replace($State,"").Trim()
+                        $NodeID = $String.ToString().ToUpper().Replace("(","").Replace(")","").Replace("ID = ", "").Trim();
                     };
-                    if($line.ToString().Contains("ISP:")){
-                        $String = $line.ToString();
-                        $ISP = $String.Replace("ISP: ","").Trim();
+                    if($line.ToString().ToUpper().Contains("ISP:")){
+                        $String = $line.ToString().ToUpper().Trim();
+                        $ISP = $String.ToString().ToUpper().Replace("ISP: ","").Trim();
                     };
-                    if($line.ToString().Contains("Latency:")){
-                        $String = $line.ToString();
-                        $String = $String.Replace("Latency:","").Trim();                
-                        $Latency = $String.Substring(0,$String.IndexOf("(")-1).Trim();
-                        $String = $String.Replace($Latency,"").Trim();
-                        $Temp = $Latency.Substring(0, $Latency.IndexOf(" ")).Trim();
-                        $LatencyUnit = $Latency.Replace($Temp,"").Trim();
-                        $Latency = $Temp;
-                        $Jitter = $String.Replace("(","").Replace(")","").Replace("jitter","").Trim();
-                        $Temp = $Jitter.Substring(0, $Jitter.IndexOf(" ")).Trim();
-                        $JitterUnit = $Jitter.Replace($Temp,"").Trim();
-                        $Jitter = $Temp;
+                    if($line.ToString().ToUpper().Contains("LATENCY:")){
+                        $String = $line.ToString().ToUpper().Trim();
+                        $String = $String.ToString().ToUpper().Replace("LATENCY:","").Trim();                
+                        $Latency = $String.ToString().ToUpper().Substring(0,$String.IndexOf("(")-1).Trim();
+                        $String = $String.ToString().ToUpper().Replace($Latency,"").Trim();
+                        $Temp = $Latency.ToString().ToUpper().Substring(0, $Latency.IndexOf(" ")).Trim();
+                        $LatencyUnit = $Latency.ToString().ToUpper().Replace($Temp,"").Trim();
+                        $Latency = $Temp.ToString().ToUpper().Trim();
+                        $Jitter = $String.ToString().ToUpper().Replace("(","").Replace(")","").Replace("JITTER","").Trim();
+                        $Temp = $Jitter.ToString().ToUpper().Substring(0, $Jitter.IndexOf(" ")).Trim();
+                        $JitterUnit = $Jitter.ToString().ToUpper().Replace($Temp,"").Trim();
+                        $Jitter = $Temp.ToString().ToUpper().Trim();
                         if($Latency -eq ""){ 
                             $Latency -eq "ERROR"; 
                         };
@@ -239,18 +242,17 @@
                             $JitterUnit -eq "ERROR"; 
                         };
                     };
-                    if($line.ToString().Contains("Download:")){
-                        $String = $line.ToString();
-                        $String = $String.Replace("Download:","").Trim();
-                        $DownSpeed = $String.Substring(0, $String.IndexOf("(")).Trim();
-                        $String = $String.Replace($DownSpeed,"").Trim();
-                        $Temp = $DownSpeed.Substring(0, $DownSpeed.IndexOf(" ")).Trim();
-                        $DownSpeedUnit = $DownSpeed.Replace($Temp,"").Trim();
-                        $DownSpeed = $Temp;
-                        $DownSize = $String.Replace("data used:","").Replace("(","").Replace(")","").Trim();
-                        $Temp = $DownSize.Substring(0, $DownSize.IndexOf(" ")).Trim();
-                        $DownSizeUnit = $DownSize.Replace($Temp,"").Trim();
-                        $DownSize = $Temp;
+                    if($line.ToString().ToUpper().Contains("DOWNLOAD:")){
+                        $String        = $line.ToString().ToUpper().Replace("DOWNLOAD:","").Trim();
+                        $DownSpeed     = $String.ToString().ToUpper().Substring(0, $String.IndexOf("(")).Trim();
+                        $String        = $String.ToString().ToUpper().Replace($DownSpeed,"").Trim();
+                        $Temp          = $DownSpeed.ToString().ToUpper().Substring(0, $DownSpeed.IndexOf(" ")).Trim();
+                        $DownSpeedUnit = $DownSpeed.ToString().ToUpper().Replace($Temp,"").Trim();
+                        $DownSpeed     = $Temp.ToString().ToUpper().Trim();
+                        $DownSize      = $String.ToString().ToUpper().Replace("DATA USED:","").Replace("(","").Replace(")","").Trim();
+                        $Temp          = $DownSize.ToString().ToUpper().Substring(0, $DownSize.IndexOf(" ")).Trim();
+                        $DownSizeUnit  = $DownSize.ToString().ToUpper().Replace($Temp,"").Trim();
+                        $DownSize      = $Temp.ToString().ToUpper();
                         if($DownSpeed -eq ""){ 
                             $DownSpeed -eq "ERROR"; 
                         };
@@ -264,18 +266,17 @@
                             $DownSizeUnit -eq "ERROR"; 
                         };
                     };
-                    if($line.ToString().Contains("Upload:")){
-                        $String = $line.ToString();
-                        $String = $String.Replace("Upload:","").Trim();
-                        $UpSpeed = $String.Substring(0, $String.IndexOf("(")).Trim();
-                        $String = $String.Replace($UpSpeed,"").Trim();
-                        $Temp = $UpSpeed.Substring(0, $UpSpeed.IndexOf(" ")).Trim();
-                        $UpSpeedUnit = $UpSpeed.Replace($Temp,"").Trim();
-                        $UpSpeed = $Temp;
-                        $UpSize = $String.Replace("data used:","").Replace("(","").Replace(")","").Trim();
-                        $Temp = $UpSize.Substring(0, $UpSize.IndexOf(" ")).Trim();
-                        $UpSizeUnit = $UpSize.Replace($Temp,"").Trim();
-                        $UpSize = $Temp;
+                    if($line.ToString().ToUpper().Contains("UPLOAD:")){
+                        $String        = $line.ToString().ToUpper().Replace("UPLOAD:","").Trim();
+                        $UpSpeed       = $String.ToString().ToUpper().Substring(0, $String.IndexOf("(")).Trim();
+                        $String        = $String.ToString().ToUpper().Replace($UpSpeed,"").Trim();$String
+                        $Temp          = $UpSpeed.ToString().ToUpper().Substring(0, $UpSpeed.IndexOf(" ")).Trim();
+                        $UpSpeedUnit   = $UpSpeed.ToString().ToUpper().Replace($Temp,"").Trim();
+                        $UpSpeed       = $Temp.ToString().ToUpper().Trim();
+                        $UpSize        = $String.ToUpper().Replace("DATA USED:","").Replace("(","").Replace(")","").Trim();
+                        $Temp          = $UpSize.ToString().ToUpper().Substring(0, $UpSize.IndexOf(" ")).Trim();
+                        $UpSizeUnit    = $UpSize.ToString().ToUpper().Replace($Temp,"").Trim();
+                        $UpSize        = $Temp.ToString().ToUpper();
                         if($UpSpeed -eq ""){ 
                             $UpSpeed -eq "ERROR"; 
                         };
@@ -289,16 +290,16 @@
                             $UpSizeUnit -eq "ERROR"; 
                         };
                     };
-                    if($line.ToString().Contains("Packet Loss:")){
-                        $String = $line.ToString();
-                        $PacketLoss = $String.Replace("Packet Loss:","").Trim();
+                    if($line.ToString().ToUpper().Contains("PACKET LOSS:")){
+                        $String = $line.ToString().ToUpper().Trim();
+                        $PacketLoss = $String.ToString().ToUpper().Replace("PACKET LOSS:","").Trim();
                         if($PacketLoss -eq ""){ 
                             $PacketLoss -eq "ERROR"; 
                         };
                     };
-                    if($line.ToString().Contains("URL:")){
-                        $String = $line.ToString();
-                        $URL = $String.Replace("Result URL:","").Trim();
+                    if($line.ToString().ToUpper().Contains("URL:")){
+                        $String = $line.ToString().ToUpper().Trim();
+                        $URL = $String.ToString().ToUpper().Replace("RESULT URL:","").Trim();
                         if($URL -eq ""){ 
                             $URL -eq "ERROR"; 
                         };
@@ -308,7 +309,7 @@
                 #Logs Results and posts last set of results to the console.;
                 Write-Progress -Activity "Speed Test Completed" -Status $LogMessage -Completed;
                 Clear-Host;
-                Add-Content -Path $LogDir\$LogFileName -Value "$LogTimeDate, $LogTime, $Server, $State, $NodeID, $ISP, $Latency, $LatencyUnit, $Jitter, $JitterUnit, $DownSpeed, $DownSpeedUnit, $DownSize, $DownSizeUnit, $UpSpeed, $UpSpeedUnit, $UpSize, $UpSpeedUnit, $PacketLoss, $URL";
+                Add-Content -Path $LogDir\$LogFileName -Value "$LogTimeDate, $LogTime, $Server, $State, $NodeID, $ISP, $Latency, $LatencyUnit, $Jitter, $JitterUnit, $DownSpeed, $DownSpeedUnit, $DownSize, $DownSizeUnit, $UpSpeed, $UpSpeedUnit, $UpSize, $UpSizeUnit, $PacketLoss, $URL";
                 Write-Host "`r`n`r`n`r`n`r`n";
                 $t = Import-Csv -Path $LogDir\$LogFileName;
                 $t[$t.Count -1];
