@@ -48,7 +48,26 @@
     if(!($PSVersionTable.PSEdition.ToString().ToUpper() -eq "CORE")){
         Write-Error "Must be run with Powershell Core.";
         Write-Warning "Visit https://github.com/PowerShell/PowerShell/releases and install powershell for your Operating System.";
+        Write-Warning "Current supported Operating Systems are: Windows 10 & Redhat flavored Linux (Fedora, Redhat, CentOS)";
         return;
+    };
+
+    function PrependZero(){
+        param($var)
+        if($var.ToString().Length -eq 1){ 
+            return "0$var";
+        }else{
+            return $var;
+        };
+    };
+
+    function ErrorCheck(){
+        param($var)
+        if($var -eq ""){
+            return "ERROR"
+        }else{
+            return $var;
+        };
     };
 
     #Checking for required speedtest program
@@ -56,10 +75,16 @@
         switch($true){
             $IsWindows{
                 if(!(Test-Path -Path .\speedtest.exe)){
-                    #Downloads Speedtest CLI, unpackages it, and then verifies the files are in the same directory.;
-                    Invoke-WebRequest -Uri https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip -OutFile .\ookla.zip;
-                    Expand-Archive -Path .\ookla.zip -DestinationPath .\;
-                    Remove-Item -Path .\ookla.zip -Force;
+                    Write-Warning "The program speedtest.exe will be downloaded from:";
+                    Write-Warning "https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip";
+                    Write-Warning "Do you want to continue?";
+                    $DL = Read-Host -Prompt "y/n?";
+                    if($DL.ToString().ToLower() -eq "y"){
+                        #Downloads Speedtest CLI, unpackages it, and then verifies the files are in the same directory.;
+                        Invoke-WebRequest -Uri https://bintray.com/ookla/download/download_file?file_path=ookla-speedtest-1.0.0-win64.zip -OutFile .\ookla.zip;
+                        Expand-Archive -Path .\ookla.zip -DestinationPath .\;
+                        Remove-Item -Path .\ookla.zip -Force;
+                    };
                     if(!(Test-Path -Path .\speedtest.exe)){
                         Write-Warning "Missing $PSScriptRoot\Speedtest.exe file! Verify Speedtest.exe exists and/or download it from Ookla."
                         return;
@@ -113,15 +138,9 @@
     $Host.UI.RawUI.WindowTitle = "Running Ookla Speed Test every $Interval Minutes...";
     [String]$LogMessage = ""
     #Date Formatting
-    $RunTimeHH = $NextTime.Hours; 
-    if($RunTimeHH.ToString().Length -eq 1){ 
-        $RunTimeHH = "0$RunTimeHH";
-    };
-    $RunTimeMM = $NextTime.Minutes; 
-    if($RunTimeMM.ToString().Length -eq 1){ 
-        $RunTimeMM = "0$RunTimeMM";
-    };
-    $RunTimeFullDate = "$((Get-Date).Day.ToString()).$((Get-Date).Month.ToString()).$((Get-Date).Year.ToString())_$($RunTimeHH.ToString())$($RunTimeMM.ToString())";
+    $RunTimeHH = PrependZero -var $NextTime.Hours; 
+    $RunTimeMM = PrependZero -var $NextTime.Minutes; 
+    $RunTimeFullDate = "$((Get-Date).Month.ToString()).$((Get-Date).Day.ToString()).$((Get-Date).Year.ToString())_$($RunTimeHH.ToString())$($RunTimeMM.ToString())";
 
     #Log File Name & Location
     $LogFileName = "Ookla_$($RuntimeFullDate.ToString()).csv"
@@ -152,14 +171,8 @@
         #Resetting all variables
         $LogTimeDate = $LogTime = $Server = $State = $NodeID = $ISP = $Latency = $LatencyUnit = $Jitter = $JitterUnit = $DownSpeed = $DownSpeedUnit = $DownSize = $DownSizeUnit = $UpSpeed = $UpSpeedUnit = $UpSize = $UpSpeedUnit = $PacketLoss = $URL = "";
         $TimeStamped = (Get-Date).TimeOfDay;
-        $LogHH = $TimeStamped.Hours; 
-        if($LogHH.ToString().Length -eq 1){ 
-            $LogHH = "0$LogHH";
-        };
-        $LogMM = $TimeStamped.Minutes; 
-        if($LogMM.ToString().Length -eq 1){ 
-            $LogMM = "0$LogMM";
-        };
+        $LogHH = PrependZero -var $TimeStamped.Hours;
+        $LogMM = PrependZero -var $TimeStamped.Minutes;
         $LogTimeDate = "$((Get-Date).Month.ToString())/$((Get-Date).Day.ToString())/$((Get-Date).Year.ToString())";
         $LogTime = $LogHH.ToString()+":"+$LogMM.ToString();
 
@@ -212,10 +225,14 @@
                         $State  = $String.ToString().ToUpper().Substring(0, $String.IndexOf("(")).Trim();
                         $String = $String.ToString().ToUpper().Replace($State,"").Trim()
                         $NodeID = $String.ToString().ToUpper().Replace("(","").Replace(")","").Replace("ID = ", "").Trim();
+                        $Server = ErrorCheck -var $Server;
+                        $State = ErrorCheck -var $State;
+                        $NodeID = ErrorCheck -var $NodeID;
                     };
                     if($line.ToString().ToUpper().Contains("ISP:")){
                         $String = $line.ToString().ToUpper().Trim();
                         $ISP = $String.ToString().ToUpper().Replace("ISP: ","").Trim();
+                        $ISP = ErrorCheck -var $ISP;
                     };
                     if($line.ToString().ToUpper().Contains("LATENCY:")){
                         $String = $line.ToString().ToUpper().Trim();
@@ -229,18 +246,10 @@
                         $Temp = $Jitter.ToString().ToUpper().Substring(0, $Jitter.IndexOf(" ")).Trim();
                         $JitterUnit = $Jitter.ToString().ToUpper().Replace($Temp,"").Trim();
                         $Jitter = $Temp.ToString().ToUpper().Trim();
-                        if($Latency -eq ""){ 
-                            $Latency -eq "ERROR"; 
-                        };
-                        if($LatencyUnit -eq ""){ 
-                            $LatencyUnit -eq "ERROR"; 
-                        };
-                        if($Jitter -eq ""){ 
-                            $Jitter -eq "ERROR"; 
-                        };
-                        if($JitterUnit -eq ""){ 
-                            $JitterUnit -eq "ERROR"; 
-                        };
+                        $Latency = ErrorCheck -var $Latency;
+                        $LatencyUnit = ErrorCheck -var $LatencyUnit;
+                        $Jitter = ErrorCheck -var $Jitter;
+                        $JitterUnit = ErrorCheck -var $JitterUnit;
                     };
                     if($line.ToString().ToUpper().Contains("DOWNLOAD:")){
                         $String        = $line.ToString().ToUpper().Replace("DOWNLOAD:","").Trim();
@@ -253,18 +262,10 @@
                         $Temp          = $DownSize.ToString().ToUpper().Substring(0, $DownSize.IndexOf(" ")).Trim();
                         $DownSizeUnit  = $DownSize.ToString().ToUpper().Replace($Temp,"").Trim();
                         $DownSize      = $Temp.ToString().ToUpper();
-                        if($DownSpeed -eq ""){ 
-                            $DownSpeed -eq "ERROR"; 
-                        };
-                        if($DownSpeedUnit -eq ""){ 
-                            $DownSpeedUnit -eq "ERROR"; 
-                        };
-                        if($DownSize -eq ""){ 
-                            $DownSize -eq "ERROR"; 
-                        };
-                        if($DownSizeUnit -eq ""){ 
-                            $DownSizeUnit -eq "ERROR"; 
-                        };
+                        $DownSpeed = ErrorCheck -var $DownSpeed;
+                        $DownSpeedUnit = ErrorCheck -var $DownSpeedUnit;
+                        $DownSize = ErrorCheck -var $DownSize;
+                        $DownSizeUnit = ErrorCheck -var $DownSizeUnit;
                     };
                     if($line.ToString().ToUpper().Contains("UPLOAD:")){
                         $String        = $line.ToString().ToUpper().Replace("UPLOAD:","").Trim();
@@ -277,32 +278,20 @@
                         $Temp          = $UpSize.ToString().ToUpper().Substring(0, $UpSize.IndexOf(" ")).Trim();
                         $UpSizeUnit    = $UpSize.ToString().ToUpper().Replace($Temp,"").Trim();
                         $UpSize        = $Temp.ToString().ToUpper();
-                        if($UpSpeed -eq ""){ 
-                            $UpSpeed -eq "ERROR"; 
-                        };
-                        if($UpSpeedUnit -eq ""){ 
-                            $UpSpeedUnit -eq "ERROR"; 
-                        };
-                        if($UpSize -eq ""){ 
-                            $UpSize -eq "ERROR"; 
-                        };
-                        if($UpSizeUnit -eq ""){
-                            $UpSizeUnit -eq "ERROR"; 
-                        };
+                        $UpSpeed = ErrorCheck -var $UpSpeed;
+                        $UpSpeedUnit = ErrorCheck -var $UpSpeedUnit;
+                        $UpSize = ErrorCheck -var $UpSize;
+                        $UpSizeUnit = ErrorCheck -var $UpSizeUnit;
                     };
                     if($line.ToString().ToUpper().Contains("PACKET LOSS:")){
                         $String = $line.ToString().ToUpper().Trim();
                         $PacketLoss = $String.ToString().ToUpper().Replace("PACKET LOSS:","").Trim();
-                        if($PacketLoss -eq ""){ 
-                            $PacketLoss -eq "ERROR"; 
-                        };
+                        $PacketLoss = ErrorCheck -var $PacketLoss;
                     };
                     if($line.ToString().ToUpper().Contains("URL:")){
                         $String = $line.ToString().ToUpper().Trim();
                         $URL = $String.ToString().ToUpper().Replace("RESULT URL:","").Trim();
-                        if($URL -eq ""){ 
-                            $URL -eq "ERROR"; 
-                        };
+                        $URL = ErrorCheck -var $URL;
                     };
                 };
 
