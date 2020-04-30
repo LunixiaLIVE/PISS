@@ -116,9 +116,15 @@
                         if(!(Get-Command "speedtest" -ErrorAction SilentlyContinue)){
                             #Installs Speedtest and installs is, then verifies it is installed. (Requires root).;
                             #Verify all URLs/package names to ensure no malicious packages are being installed.;
-                            Invoke-WebRequest -Uri https://bintray.com/ookla/rhel/rpm -OutFile ./bintray-ookla-rhel.repo;
-                            Move-Item -Path ./bintray-ookla-rhel.repo -Destination /etc/yum.repos.d/;
-                            yum install -y speedtest;
+                            Write-Warning "The program speedtest.exe will be downloaded from:";
+                            Write-Warning "https://bintray.com/ookla/rhel/rpm";
+                            Write-Warning "Do you want to continue?";
+                            $DL = Read-Host -Prompt "y/n?";
+                            if($DL.ToString().ToLower() -eq "y"){
+                                Invoke-WebRequest -Uri https://bintray.com/ookla/rhel/rpm -OutFile ./bintray-ookla-rhel.repo;
+                                Move-Item -Path ./bintray-ookla-rhel.repo -Destination /etc/yum.repos.d/;
+                                yum install -y speedtest;
+                            };
                         };
                     }else{
                         Write-Error "Operating System not supported yet.";
@@ -290,7 +296,7 @@
                     };
                     if($line.ToString().ToUpper().Contains("URL:")){
                         $String = $line.ToString().ToUpper().Trim();
-                        $URL = $String.ToString().ToUpper().Replace("RESULT URL:","").Trim();
+                        $URL = $String.ToString().ToLower().Replace("RESULT URL:","").Trim();
                         $URL = ErrorCheck -var $URL;
                     };
                 };
