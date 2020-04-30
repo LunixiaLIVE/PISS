@@ -296,7 +296,7 @@
                     };
                     if($line.ToString().ToUpper().Contains("URL:")){
                         $String = $line.ToString().ToUpper().Trim();
-                        $URL = $String.ToString().ToLower().Replace("RESULT URL:","").Trim();
+                        $URL = $String.ToString().ToLower().Replace("result url:","").Trim();
                         $URL = ErrorCheck -var $URL;
                     };
                 };
