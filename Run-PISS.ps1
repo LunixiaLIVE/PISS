@@ -195,6 +195,7 @@
                 }
                 $IsMacOS{
                     #In Development...
+                    #I do not have a MacOS system... So if someone would like to test out the steps it takes to get this working, let me know!
                     break;
                 }
                 $IsLinux{
@@ -223,11 +224,9 @@
                 $Result = Get-Content -Path .\temp.txt;
                 foreach($line in $Result){
                     if($line.ToString().ToUpper().Contains("SERVER:")){
-                        $String = $line.ToString().ToUpper().Trim();
-                        $String = $String.ToString().ToUpper().Replace("SERVER:","").Trim();
+                        $String = $line.ToString().ToUpper().Trim().Replace("SERVER:","").Trim();
                         $Server = $String.ToString().ToUpper().Substring(0, $String.IndexOf(",")).Trim();
-                        $String = $String.ToString().ToUpper().Replace($Server, "").Trim();
-                        $String = $String.ToString().ToUpper().Replace(",", "").Trim();
+                        $String = $String.ToString().ToUpper().Replace($Server, "").Trim().Replace(",", "").Trim();
                         $State  = $String.ToString().ToUpper().Substring(0, $String.IndexOf("(")).Trim();
                         $String = $String.ToString().ToUpper().Replace($State,"").Trim()
                         $NodeID = $String.ToString().ToUpper().Replace("(","").Replace(")","").Replace("ID = ", "").Trim();
@@ -241,8 +240,7 @@
                         $ISP = ErrorCheck -var $ISP;
                     };
                     if($line.ToString().ToUpper().Contains("LATENCY:")){
-                        $String = $line.ToString().ToUpper().Trim();
-                        $String = $String.ToString().ToUpper().Replace("LATENCY:","").Trim();                
+                        $String = $line.ToString().ToUpper().Trim().Replace("LATENCY:","").Trim();     
                         $Latency = $String.ToString().ToUpper().Substring(0,$String.IndexOf("(")-1).Trim();
                         $String = $String.ToString().ToUpper().Replace($Latency,"").Trim();
                         $Temp = $Latency.ToString().ToUpper().Substring(0, $Latency.IndexOf(" ")).Trim();
@@ -291,13 +289,11 @@
                     };
                     if($line.ToString().ToUpper().Contains("PACKET LOSS:")){
                         $String = $line.ToString().ToUpper().Trim();
-                        $PacketLoss = $String.ToString().ToUpper().Replace("PACKET LOSS:","").Trim();
-                        $PacketLoss = ErrorCheck -var $PacketLoss;
+                        $PacketLoss = ErrorCheck -var $String.ToString().ToUpper().Replace("PACKET LOSS:","").Trim();
                     };
                     if($line.ToString().ToUpper().Contains("URL:")){
                         $String = $line.ToString().ToUpper().Trim();
-                        $URL = $String.ToString().ToLower().Replace("result url:","").Trim();
-                        $URL = ErrorCheck -var $URL;
+                        $URL = ErrorCheck -var $String.ToString().ToLower().Replace("result url:","").Trim();
                     };
                 };
 
