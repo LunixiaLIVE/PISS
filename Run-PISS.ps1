@@ -1,4 +1,6 @@
-﻿function Run-PISS(){
+﻿#Requires -PSEdition CORE
+
+function Run-PISS(){
     <#
         .SYNOPSIS
             This function performs performs a speed test using the 
@@ -310,12 +312,6 @@
         Start-Sleep -Seconds 1;
         Write-Progress -Activity "Waiting for next speed test @$($NextTime.ToString().SubString(0,$NextTime.ToString().IndexOf(".")-3))" -Status "zzZZzzz";
     }; 
-};
-
-if(!($PSVersionTable.PSEdition.ToString().ToUpper() -eq "CORE")){
-    Write-Error "Must be run with Powershell Core.";
-    Write-Warning "Visit https://github.com/PowerShell/PowerShell/releases and install powershell for your Operating System.";
-    return;
 };
 
 if(!(Get-Command -Name Run-PISS -ErrorAction SilentlyContinue)){
